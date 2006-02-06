@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+{
+package FileSystem;
+use base qw( GraphViz::Traverse );
+sub node_label {
+#    my( $self, $node ) = @_;
+    return '';
+}
+sub node_height { return 0.4 }
+sub node_style { return 'filled' }
+sub node_width { return 0.4 }
+sub node_tooltip {
+    my $self = shift;
+    return shift;   # Hand back the node, which is the current path.
+}
+sub node_peripheries {
+    my $self = shift;
+    $_ = shift;
+    return !-d $_ && -x $_ ? 2 : 1;
+}
+sub node_fillcolor {
+    my $self = shift;
+    $_ = shift;
+    return
+        -d $_ ? 'snow' :
+        # perl-ish things
+        /\.pod$/ ? 'cadetblue' :
+        /\.pm$/  ? 'cadetblue4' :
+        /\.cgi$/ ? 'cadetblue3' :
+        /\.pl$/  ? 'cadetblue2' :
+        # "ordinary" files
+        /(?:readme|install|todo|faq|change|bugs)/i ? 'goldenrod' :
+        /\.conf$/      ? 'gold' :
+        /(?:\.|_)log$/ ? 'gold3' :
+        /\.txt$/       ? 'gold4' :
+        # html and friends
+        /\.css$/   ? 'plum' :
+        /\.html?$/ ? 'plum3' :
+        /\.tm?pl$/ ? 'plum4' :
+        # javascript
+        /\.js$/ ? 'salmon' :
+        # php
+        /\.php$/ ? 'seagreen' :
+        # images
+        /\.jpe?g$/ ? 'orchid4' :
+        /\.gif$/   ? 'orchid3' :
+        /\.png$/   ? 'orchid1' :
+        # archives
+        /\.tar.gz$/ ? 'red3' :
+        /\.tgz$/    ? 'red2' :
+        /\.zip$/    ? 'red1' :
+        /\.dump$/   ? 'pink' :
+#        /\.$/ ? '' :
+        'yellow';
+}
+sub edge_color {
+#    my( $self, $parent, $child ) = @_;
+    return 'gray';
+}
+}
+
+my $g = FileSystem->new(
+#    directed => 0,
+#    layout => 'twopi',#'neato',
+    ratio => 'compress',
+    bgcolor => 'beige',
+) or die $!;
+my $root = shift || '.';
+$g->traverse( $root );
+print $g->as_debug();
