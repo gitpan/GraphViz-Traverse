@@ -2,3 +2,5 @@ Changes file for GraphViz::Traverse
 
 0.00_1 Sun Feb 5, 2006
     - Created by Module::Husbandry.
+0.00_2 Sun March 5, 2006
+    - Got my autoloading straight at the pre E-Tech'06 Hack-a-thon.

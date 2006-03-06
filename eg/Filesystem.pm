@@ -1,26 +1,32 @@
-#!/usr/bin/perl
+package FileSystem;
+$VERSION = 0.01;
 use strict;
 use warnings;
-
-{
-package FileSystem;
+use lib 'lib';
 use base qw( GraphViz::Traverse );
-sub node_label {
-#    my( $self, $node ) = @_;
-    return '';
-}
+use File::Find;
+use File::Basename;
+
+sub node_label { return '' }
+
 sub node_height { return 0.4 }
+
 sub node_style { return 'filled' }
+
 sub node_width { return 0.4 }
+
 sub node_tooltip {
     my $self = shift;
-    return shift;   # Hand back the node, which is the current path.
+    return shift;   # Just hand back the node, which is the current path.
 }
+
 sub node_peripheries {
+    # If we are executable, then we get a ring.
     my $self = shift;
     $_ = shift;
     return !-d $_ && -x $_ ? 2 : 1;
 }
+
 sub node_fillcolor {
     my $self = shift;
     $_ = shift;
@@ -56,18 +62,21 @@ sub node_fillcolor {
 #        /\.$/ ? '' :
         'yellow';
 }
-sub edge_color {
-#    my( $self, $parent, $child ) = @_;
-    return 'gray';
-}
+
+sub edge_color { return 'gray' }
+
+sub traverse {
+    my( $self, $root ) = @_;
+    my $flag_item = sub {
+        return if $_ eq '.';
+        my $node = $File::Find::name;
+        my( $name, $path ) = File::Basename::fileparse( $node );
+        $path =~ s/\S$//;
+        my $parent = File::Basename::fileparse( $path );
+        warn "$node -> $path + $_\n\tL> $parent + $name\n";
+        $self->mark_item( $node, $path );
+    };
+    File::Find::find( $flag_item, $root ); 
 }
 
-my $g = FileSystem->new(
-#    directed => 0,
-#    layout => 'twopi',#'neato',
-    ratio => 'compress',
-    bgcolor => 'beige',
-) or die $!;
-my $root = shift || '.';
-$g->traverse( $root );
-print $g->as_debug();
+1;

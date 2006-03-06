@@ -1,32 +1,17 @@
 package GraphViz::Traverse;
 #
-# $Id: Template.pm,v 1.2 2004/05/23 07:58:46 gene Exp $
+# $Id: Traverse.pm,v 1.4 2006/03/06 01:23:03 gene Exp $
 #
-our $VERSION = '0.00_1';
+our $VERSION = '0.00_2';
 use strict;
 use warnings;
 use base qw( GraphViz );
 use Carp;
-use File::Basename;
-use File::Find;
-
-our $AUTOLOAD;
-sub AUTOLOAD {
-    my $self = shift;
-    my $type = ref($self) or croak "$self is not an object";
-
-    my $name = $AUTOLOAD;
-    $name =~ s/.*://;   # strip fully-qualified portion
-    croak "Can't access '$name' field in class $type"
-        unless exists $self->{_node_attributes}{$name}
-            || exists $self->{_edge_attributes}{$name};
-
-    return @_ ? $self->{$name} = shift : $self->{$name};
-}
 
 sub new {
-    my $class = shift;
-    my $self = $class->SUPER::new( @_ );
+    my( $class, %args ) = @_;
+    my $proto = ref( $class ) || $class;
+    my $self = $class->SUPER::new( %args );
     bless $self, $class;
     $self->_init();
     return $self;
@@ -34,130 +19,115 @@ sub new {
 
 sub _init {
     my $self = shift;
-    # XXX Get these attributes automatically, from GraphViz itself.
-    $self->{_node_attributes} = {
-        fillcolor => undef,
-        height => undef,
-        label => undef,
-        peripheries => undef,
-        style => undef,
-        width => undef,
-        tooltip => undef,
-    };
-    $self->{_edge_attributes} = {
-        color => undef,
-    };
+
+    # Pre-declare the node and edge methods as closures.
+    no strict 'refs';
+    for my $key ( qw(
+        color
+        distortion
+        fillcolor
+        fixedsize
+        fontcolor
+        fontname
+        fontsize
+        height
+        href
+        label
+        layer
+        orientation
+        peripheries
+        regular
+        shape
+        sides
+        skew
+        style
+        target
+        tooltip
+        URL
+        width
+    ) ) {
+        $self->{_node_attributes}{$key} = undef;
+        *{ 'node_' . $key } = sub { return $_[0]->{$key} }
+    }
+
+    for my $key ( qw(
+        arrowhead
+        arrowsize
+        arrowtail
+        color
+        constraint
+        decorate
+        dir
+        fontcolor
+        fontname
+        fontsize
+        headURL
+        headclip
+        headhref
+        headlabel
+        headtarget
+        headtooltip
+        href
+        label
+        labelangle
+        labeldistance
+        layer
+        minlen
+        port_label_distance
+        samehead
+        sametail
+        style
+        tailURL
+        tailclip
+        tailhref
+        taillabel
+        tailtooltip
+        target
+        tooltip
+        URL
+        weight
+    ) ) {
+        $self->{_edge_attributes}{$key} = undef;
+        *{ 'edge_' . $key } = sub { return $_[0]->{$key} };
+    }
 }
 
-sub traverse {
-    my $self = shift;
-    my $root = shift || '.';
+sub AUTOLOAD {
+    our $AUTOLOAD;
+    my( $self, $value ) = @_;
+    my( $type, $key ) = $AUTOLOAD =~ /::(node|edge)_(\w+)$/;
+    return unless $type;
+    return $self->{$key};
+}
 
-    # Use the OO F::F here, instead of trying to be strict with $self.
-    my $flag_item = sub {
-        return if $_ eq '.';
-
-        # Parse-out node name (and parent).
-        my $node = $File::Find::name;
-        my( $name, $path ) = fileparse( $node );
-        $path =~ s/\S$//;
-        my $parent = fileparse( $path );
-        warn "$node -> $path + $_\n\tL> $parent + $name\n";
-
-        $self->add_node( $node,
-            $self->build_attributes( $node )
+sub mark_item {
+    my( $self, $node, $parent ) = @_;
+    if( $parent ) {
+        $self->add_edge( $parent => $node,
+            $self->build_attributes( $node, $parent )
         );
-        $self->add_edge( $path => $node,
-            $self->build_attributes( $path => $node )
-        );
-    };
-
-    # Call our user-defined method, if it exists. Otherwise assume we
-    # are traversing a file system.
-    exists $self->{callback}
-        ? $self->callback( $flag_item, $root )
-        : File::Find::find( $flag_item, $root ); 
+    }
+    else {
+        $self->add_node( $node, $self->build_attributes( $node ) );
+    }
 }
 
 sub build_attributes {
     my( $self, $A, $B ) = @_;
-
+    # Are we an edge or are we a node?
     my $type = $B ? 'edge' : 'node';
-
     my %attributes = ();
-
-    for my $attr ( keys %{ $self->{'_'. $type .'_attributes'} } ) {
-        if( $B ) {
-            # Call the apropriate edge method.
-            my $method = $type .'_'. $attr;
-            $attributes{$attr} = $self->$method( $A => $B );
-        }
-        else {
-            # Call the apropriate node method.
-            my $method = $type .'_'. $attr;
-            $attributes{$attr} = $self->$method( $A );
-        }
+    # Loop over each object attribute.
+    for my $attr ( keys %{ $self->{ '_'. $type .'_attributes' } } ) {
+        # Construct the appropriate type method.
+        my $method = $type .'_'. $attr;
+        # ..and then call it.
+        $attributes{$attr} = $B
+            ? $self->$method( $A => $B )
+            : $self->$method( $A );
     }
-
+    # Return the hash of evaluated attributes.
     return wantarray ? %attributes : \%attributes;
-}
-
-######################################################################
-# Default attribute subroutines.
-sub node_label {
-#    my( $self, $node ) = @_;
-    return '';
-}
-sub node_height { return 0.4 }
-sub node_style { return 'filled' }
-sub node_width { return 0.4 }
-sub node_tooltip {
-    my $self = shift;
-    return shift;   # Hand back the node, which is the current path.
-}
-sub node_peripheries {
-    my $self = shift;
-    $_ = shift;
-    return !-d $_ && -x $_ ? 2 : 1;
-}
-sub node_fillcolor {
-    my $self = shift;
-    $_ = shift;
-    return
-        -d $_ ? 'snow' :
-        # perl-ish things
-        /\.pod$/ ? 'cadetblue' :
-        /\.pm$/  ? 'cadetblue4' :
-        /\.cgi$/ ? 'cadetblue3' :
-        /\.pl$/  ? 'cadetblue2' :
-        # "ordinary" files
-        /(?:readme|install|todo|faq|change|bugs)/i ? 'goldenrod' :
-        /\.conf$/      ? 'gold' :
-        /(?:\.|_)log$/ ? 'gold3' :
-        /\.txt$/       ? 'gold4' :
-        # html and friends
-        /\.css$/   ? 'plum' :
-        /\.html?$/ ? 'plum3' :
-        /\.tm?pl$/ ? 'plum4' :
-        # javascript
-        /\.js$/ ? 'salmon' :
-        # php
-        /\.php$/ ? 'seagreen' :
-        # images
-        /\.jpe?g$/ ? 'orchid4' :
-        /\.gif$/   ? 'orchid3' :
-        /\.png$/   ? 'orchid1' :
-        # archives
-        /\.tar.gz$/ ? 'red3' :
-        /\.tgz$/    ? 'red2' :
-        /\.zip$/    ? 'red1' :
-        /\.dump$/   ? 'pink' :
-#        /\.$/ ? '' :
-        'yellow';
-}
-sub edge_color {
-#    my( $self, $parent, $child ) = @_;
-    return 'gray';
 }
 
 1;
@@ -189,8 +159,8 @@ Return a new GraphViz::Traverse instance.
   $g->traverse($root);
 
 Traverse a tree with C<GraphViz>.  If a callback is provided in the
-constructor, that code is used to traverse, otherwise C<File::Find> is
-used.
+constructor, that code is used to traverse, otherwise
+C<File::Find::find()> is used.
 
 =head1 PRIVATE METHODS
 
@@ -204,16 +174,14 @@ Initialize the GraphViz::Traverse instance.
 
 Document this code.
 
-Autoload the top level graph attributes as well as the nodes and edges.
-
 =head1 COPYRIGHT
 
 Copyright 2006, Gene Boggs, All Rights Reserved
 
 =head1 LICENSE
 
-You may use this module under the terms of the BSD, Artistic, or GPL 
-licenses, any version.
+You may use this module under the license terms of the parent
+L<GraphViz> package.
 
 =head1 AUTHOR
 

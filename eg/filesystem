@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib 'eg';
+use FileSystem;
+my $g = FileSystem->new(
+    ratio => 'compress',
+    bgcolor => 'beige',
+) or die $!;
+$g->traverse( shift || '.' );
+print $g->as_debug();
+# > perl eg/filesystem > eg/filesystem.dot
+
+__END__
+
+#   bgcolor      => undef, # Class instance setting
+#   center       => undef, # n a non-zero value centers the drawing on the page.
+#   color        => undef, # color value sets foreground color (bgcolorfor background).
+#   concentrate  => undef, # Class instance setting
+#   directed     => undef, # Class instance setting
+#   epsilon      => undef, # Class instance setting
+#   height       => undef, # Class instance setting
+#   href         => undef, # "url" the default url for image map files; in PostScript files, the base URL for all relative URLs, as recognized by Acrobat Distiller 3.0 and up.
+#   layers       => undef, # "id:id:id:id" is a sequence of layer identifiers for overlay diagrams. The PostScript array variable layercolorseqsets the assignment of colors to layers. The least indexis1and each element must be a 3-ele- ment array to be interpreted as a color coordinate.
+#   layout       => undef, # Class instance setting
+#   margin       => undef, # f sets the page margin (included in the page size).
+#   no_overlap   => undef, # Class instance setting
+#   nodesep      => undef, # f sets the minimum separation between nodes.
+#   nslimit      => undef, # f ormclimit=f adjusts the bound on the number of network simplexormincross iterations by the givenratio. For example,mclimit=2.0runs twice as long.
+#   ordering     => undef, # out constrains order of out-edges in a subgraph according to their file sequence.
+#   overlap      => undef, # Class instance setting
+#   page         => undef, # "x,y" sets the PostScript pagination unit.
+#   pagedir      => undef, # [TBLR][TBLR] sets the major and minor order of pagination.
+#   pageheight   => undef, # Class instance setting
+#   pagewidth    => undef, # Class instance setting
+#   random_start => undef, # Class instance setting
+#   rank       => undef, # same (or minor max) inasubgraph constrains the rank assignment of its nodes. If a subgraph's name has the prefixcluster, its nodes are drawn in a distinct rectangle of the layout. Clusters may be nested.
+#   rankdir    => undef, # LR|RL|BT requests a left-to-right, right-to-left, or bottom-to-top, drawing.
+#   ranksep    => undef, # f sets the minimum separation between ranks.
+#   ratio      => undef, # f sets the aspect ratio tof which may be a floating point number, orone of the keywordsfill, compress,orauto.
+#   rotate     => undef, # 90 sets landscape mode. (orientation=landis backward compatible but obsolete.)
+#   size       => undef, # "x,y" sets bounding box of drawing in inches.
+#   stylesheet => undef, # "file.css" includes a reference to a stylesheet in -Tsvg and -Tsvgz outputs. Ignored by other formats.
+#   URL        => undef, # "url" ("URL" is a synonym for "href".)
+#   width      => undef, # Class instance setting
