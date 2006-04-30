@@ -1,8 +1,6 @@
 CHANGES
-eg/filesystem
-eg/filesystem.dot
-eg/Filesystem.pm
 lib/GraphViz/Traverse.pm
+lib/GraphViz/Traverse/Filesystem.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP

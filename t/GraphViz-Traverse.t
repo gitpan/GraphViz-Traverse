@@ -1,20 +1,20 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More 'no_plan';#tests => 1;
+use Test::More tests => 8;
 
 use lib 'lib';
 use_ok 'GraphViz::Traverse';
 
-my $obj = eval { GraphViz::Traverse->new };
+my $g = eval { GraphViz::Traverse->new };
 warn $@ if $@;
-isa_ok $obj, 'GraphViz::Traverse';
+isa_ok $g, 'GraphViz::Traverse';
+is $g->traverse, undef, 'traverse is undefined';
+is $g->edge_color, undef, 'edge_color is undefined';
 
-ok $obj->{_node_attributes}, 'node attributes defined';
-for( keys %{ $obj->{_node_attributes} } ) {
-    can_ok $obj, 'node_' . $_;
-}
-ok $obj->{_edge_attributes}, 'edge attributes defined';
-for( keys %{ $obj->{_edge_attributes} } ) {
-    can_ok $obj, 'edge_' . $_;
-}
+use_ok 'GraphViz::Traverse::Filesystem';
+$g = eval { GraphViz::Traverse::Filesystem->new };
+warn $@ if $@;
+isa_ok $g, 'GraphViz::Traverse::Filesystem';
+ok $g->traverse('.'), 'traverse is defined';
+is $g->edge_color, 'gray', 'edge_color is defined';

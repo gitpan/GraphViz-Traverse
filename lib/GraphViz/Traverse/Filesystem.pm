@@ -1,8 +1,7 @@
-package FileSystem;
-$VERSION = 0.01;
+package GraphViz::Traverse::Filesystem;
+our $VERSION = 0.01;
 use strict;
 use warnings;
-use lib 'lib';
 use base qw( GraphViz::Traverse );
 use File::Find;
 use File::Basename;
@@ -73,10 +72,63 @@ sub traverse {
         my( $name, $path ) = File::Basename::fileparse( $node );
         $path =~ s/\S$//;
         my $parent = File::Basename::fileparse( $path );
-        warn "$node -> $path + $_\n\tL> $parent + $name\n";
+        warn "$node -> $path + $_\n\tL> $parent + $name\n"
+            if $self->{_DEBUG};
         $self->mark_item( $node, $path );
     };
     File::Find::find( $flag_item, $root ); 
+    return 1;
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+GraphViz::Traverse::Filesystem - Graph a filesystem
+
+=head1 SYNOPSIS
+
+  use GraphViz::Traverse::Filesystem;
+  my $g = GraphViz::Traverse::Filesystem->new() or die $!;
+  $g->traverse('.');
+  print $g->as_debug();
+
+=head1 DESCRIPTION
+
+A C<GraphViz::Traverse::Filesystem> object provides methods to traverse a
+file system and render it with C<GraphViz>.
+
+Inherit this module to define and use custom B<node_*> and B<edge_*>
+methods.
+
+=head1 PUBLIC METHODS
+
+=head2 traverse
+
+  $g->traverse($root);
+
+Traverse a file system starting at the given root path and populate
+the C<GraphViz> object with file nodes-and path-edges.
+
+=head1 SEE ALSO
+
+L<GraphViz>
+
+L<GraphViz::Traverse>
+
+=head1 COPYRIGHT
+
+Copyright 2006, Gene Boggs, All Rights Reserved
+
+=head1 LICENSE
+
+You may use this module under the license terms of the parent
+L<GraphViz> package.
+
+=head1 AUTHOR
+
+Gene Boggs E<lt>gene@cpan.orgE<gt>
+
+=cut
