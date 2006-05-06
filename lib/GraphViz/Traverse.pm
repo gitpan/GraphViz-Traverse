@@ -1,12 +1,10 @@
+# $Id: Traverse.pm,v 1.8 2006/05/06 18:56:21 gene Exp $
 package GraphViz::Traverse;
-#
-# $Id: Traverse.pm,v 1.7 2006/04/30 06:03:17 gene Exp $
-#
 use strict;
 use warnings;
 use base qw( GraphViz );
 use Carp;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $AUTOLOAD;
 
 sub new {
@@ -135,7 +133,7 @@ GraphViz::Traverse - Build a GraphViz object via callback traversal
 
 =head1 SYNOPSIS
 
-  # Base class for GraphViz traversal modules.
+  use GraphViz::Traverse;
 
 =head1 DESCRIPTION
 
@@ -148,7 +146,40 @@ by other traversal modules.
 
   my $g = GraphViz::Traverse->new($arguments);
 
-Return a new GraphViz::Traverse instance.
+Return a new GraphViz::Traverse instance.  Valid arguments are listed
+below (taken from C<man dot> and L<GraphViz::Traverse>):
+
+  _DEBUG       = Class instance setting
+  bgcolor      = Class instance setting
+  center       = n a non-zero value centers the drawing on the page.
+  color        = color value sets foreground color (bgcolorfor background).
+  concentrate  = Class instance setting
+  directed     = Class instance setting
+  epsilon      = Class instance setting
+  height       = Class instance setting
+  href         = "url" the default url for image map files; in PostScript files, the base URL for all relative URLs, as recognized by Acrobat Distiller 3.0 and up.
+  layers       = "id:id:id:id" is a sequence of layer identifiers for overlay diagrams. The PostScript array variable layercolorseqsets the assignment of colors to layers. The least indexis1and each element must be a 3-ele- ment array to be interpreted as a color coordinate.
+  layout       = Class instance setting
+  margin       = f sets the page margin (included in the page size).
+  no_overlap   = Class instance setting
+  nodesep      = f sets the minimum separation between nodes.
+  nslimit      = f ormclimit=f adjusts the bound on the number of network simplexormincross iterations by the givenratio. For example,mclimit=2.0runs twice as long.
+  ordering     = out constrains order of out-edges in a subgraph according to their file sequence.
+  overlap      = Class instance setting
+  page         = "x,y" sets the PostScript pagination unit.
+  pagedir      = [TBLR][TBLR] sets the major and minor order of pagination.
+  pageheight   = Class instance setting
+  pagewidth    = Class instance setting
+  random_start = Class instance setting
+  rank         = same (or minor max) inasubgraph constrains the rank assignment of its nodes. If a subgraph's name has the prefixcluster, its nodes are drawn in a distinct rectangle of the layout. Clusters may be nested.
+  rankdir      = LR|RL|BT requests a left-to-right, right-to-left, or bottom-to-top, drawing.
+  ranksep      = f sets the minimum separation between ranks.
+  ratio        = f sets the aspect ratio tof which may be a floating point number, orone of the keywordsfill, compress,orauto.
+  rotate       = 90 sets landscape mode. (orientation=landis backward compatible but obsolete.)
+  size         = "x,y" sets bounding box of drawing in inches.
+  stylesheet   = "file.css" includes a reference to a stylesheet in -Tsvg and -Tsvgz outputs. Ignored by other formats.
+  URL          = "url" ("URL" is a synonym for "href".)
+  width        = Class instance setting
 
 =head2 mark_item
 
@@ -163,7 +194,73 @@ method is to be used by the C<traverse> method.
   $g->traverse($root);
 
 Traverse a structure starting at a given root node.  This method is to
-be overridden by an inheriting class with specific traversal actions.
+be overridden by an inheriting class with specific traversal actions
+for the C<GraphViz> C<dot> attributes listed below.  Please see
+L<GraphViz::Traverse::Filesystem> for an example of this attribute
+overriding.
+
+Node attributes:
+
+  color
+  distortion
+  fillcolor
+  fixedsize
+  fontcolor
+  fontname
+  fontsize
+  height
+  href
+  label
+  layer
+  orientation
+  peripheries
+  regular
+  shape
+  sides
+  skew
+  style
+  target
+  tooltip
+  URL
+  width
+
+Edge attributes:
+
+  arrowhead
+  arrowsize
+  arrowtail
+  color
+  constraint
+  decorate
+  dir
+  fontcolor
+  fontname
+  fontsize
+  headURL
+  headclip
+  headhref
+  headlabel
+  headtarget
+  headtooltip
+  href
+  label
+  labelangle
+  labeldistance
+  layer
+  minlen
+  port_label_distance
+  samehead
+  sametail
+  style
+  tailURL
+  tailclip
+  tailhref
+  taillabel
+  tailtooltip
+  target
+  tooltip
+  URL
+  weight
 
 =head1 TO DO
 

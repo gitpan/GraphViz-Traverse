@@ -1,66 +1,12 @@
+# $Id: Filesystem.pm,v 1.4 2006/05/06 18:56:21 gene Exp $
 package GraphViz::Traverse::Filesystem;
-our $VERSION = 0.01;
+our $VERSION = '0.02';
 use strict;
 use warnings;
+use Carp;
 use base qw( GraphViz::Traverse );
 use File::Find;
 use File::Basename;
-
-sub node_label { return '' }
-
-sub node_height { return 0.4 }
-
-sub node_style { return 'filled' }
-
-sub node_width { return 0.4 }
-
-sub node_tooltip {
-    my $self = shift;
-    return shift;   # Just hand back the node, which is the current path.
-}
-
-sub node_peripheries {
-    # If we are executable, then we get a ring.
-    my $self = shift;
-    $_ = shift;
-    return !-d $_ && -x $_ ? 2 : 1;
-}
-
-sub node_fillcolor {
-    my $self = shift;
-    $_ = shift;
-    return
-        -d $_ ? 'snow' :
-        # perl-ish things
-        /\.pod$/ ? 'cadetblue' :
-        /\.pm$/  ? 'cadetblue4' :
-        /\.cgi$/ ? 'cadetblue3' :
-        /\.pl$/  ? 'cadetblue2' :
-        # "ordinary" files
-        /(?:readme|install|todo|faq|change|bugs)/i ? 'goldenrod' :
-        /\.conf$/      ? 'gold' :
-        /(?:\.|_)log$/ ? 'gold3' :
-        /\.txt$/       ? 'gold4' :
-        # html and friends
-        /\.css$/   ? 'plum' :
-        /\.html?$/ ? 'plum3' :
-        /\.tm?pl$/ ? 'plum4' :
-        # javascript
-        /\.js$/ ? 'salmon' :
-        # php
-        /\.php$/ ? 'seagreen' :
-        # images
-        /\.jpe?g$/ ? 'orchid4' :
-        /\.gif$/   ? 'orchid3' :
-        /\.png$/   ? 'orchid1' :
-        # archives
-        /\.tar.gz$/ ? 'red3' :
-        /\.tgz$/    ? 'red2' :
-        /\.zip$/    ? 'red1' :
-        /\.dump$/   ? 'pink' :
-#        /\.$/ ? '' :
-        'yellow';
-}
 
 sub edge_color { return 'gray' }
 
@@ -86,14 +32,16 @@ __END__
 
 =head1 NAME
 
-GraphViz::Traverse::Filesystem - Graph a filesystem
+GraphViz::Traverse::Filesystem - Visualize a filesystem with GraphViz
 
 =head1 SYNOPSIS
 
   use GraphViz::Traverse::Filesystem;
-  my $g = GraphViz::Traverse::Filesystem->new() or die $!;
-  $g->traverse('.');
-  print $g->as_debug();
+  $g = GraphViz::Traverse::Filesystem->new(
+      ratio => 'compress', bgcolor => 'beige'
+  );
+  $g->traverse($root);
+  print $g->as_debug;
 
 =head1 DESCRIPTION
 
@@ -101,7 +49,42 @@ A C<GraphViz::Traverse::Filesystem> object provides methods to traverse a
 file system and render it with C<GraphViz>.
 
 Inherit this module to define and use custom B<node_*> and B<edge_*>
-methods.
+methods.  Example:
+
+  package Foo;
+  use strict;
+  use warnings;
+  use base qw( GraphViz::Traverse::Filesystem );
+  sub node_style { return 'filled' }
+  sub node_peripheries {
+    my $self = shift;
+    $_ = shift;
+    return !-d $_ && -x $_ ? 2 : 1; # Executable? Get a ring.
+  }
+  sub node_fillcolor {
+    my $self = shift;
+    $_ = shift;
+    return
+        -d $_ ? 'snow' :
+        /\.pod$/   ? 'cadetblue' :
+        /\.pm$/    ? 'cadetblue4' :
+        /\.cgi$/   ? 'cadetblue3' :
+        /\.pl$/    ? 'cadetblue2' :
+        /(?:readme|changes?)/i ? 'goldenrod' :
+        /\.txt$/   ? 'gold4' :
+        /\.css$/   ? 'plum' :
+        /\.html?$/ ? 'plum3' :
+        /\.jpe?g$/ ? 'orchid4' :
+        /\.gif$/   ? 'orchid3' :
+        /\.png$/   ? 'orchid1' :
+        /\.t(?:ar\.)?gz$/ ? 'red3' :
+        /\.zip$/   ? 'red1' :
+        /\.dump$/  ? 'pink' :
+        'yellow';
+  }
+  sub edge_color { return 'gray' }
+  # etc.
+  1;
 
 =head1 PUBLIC METHODS
 
